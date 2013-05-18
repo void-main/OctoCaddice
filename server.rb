@@ -65,6 +65,7 @@ post '/update' do
 
     new_commit_count = results.size
     @@commit_hash[path] += new_commit_count
+    puts @@device_pool.reverse_as_list
     devices = @@device_pool.reverse_as_list[path]
     puts devices
     if new_commit_count > 0 && devices.size > 0
@@ -76,11 +77,13 @@ post '/update' do
         }
       }
 
-      puts msg
-      # Do post request
-      @@clnt.post(GCM_ANDROID_ENDPOINT, JSON.dump(msg), {"Authorization" => ENV["GOOGLE_API_KEY"], "Content-Type" => "application/json"})
+      key = ENV["GOOGLE_API_KEY"]
+      result = {"Authorization" => "key=#{key}", "Content-Type" => "application/json"}
+      @@clnt.post(GCM_ANDROID_ENDPOINT, JSON.dump(msg), {"Authorization" => "key=#{key}", "Content-Type" => "application/json"})
     end
   end
+
+  'OK'
 end
 
 def path_for type, name
