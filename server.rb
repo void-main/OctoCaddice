@@ -27,6 +27,10 @@ get '/:type/:name' do
   JSON.dump result
 end
 
+get '/devices' do
+  JSON.dump @@device_pool
+end
+
 # Register a new device with it's user path
 post '/register' do
   regId = params["regId"]
@@ -43,13 +47,13 @@ post '/unregister' do
   @@device_pool.delete regId
   @@commit_hash.delete path
   @@time_hash.delete path
+  '{"status" : "success"}'
 end
 
 # Updated by OctoCaddice-Web
 post '/update' do
   request.body.rewind  # in case someone already read it
   events = JSON.load request.body.read
-
   events.each_pair do |path, evts|
     update_time_for path
 
@@ -62,6 +66,7 @@ post '/update' do
     new_commit_count = results.size
     @@commit_hash[path] += new_commit_count
     devices = @@device_pool.reverse_as_list[path]
+    puts devices
     if new_commit_count > 0 && devices.size > 0
       msg = {
         "registration_ids" => devices,
