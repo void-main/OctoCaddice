@@ -23,14 +23,14 @@ post '/update' do
 
     results = evts.select do |evt|
       t = Time.parse(evt["created_at"]).getlocal("+08:00")
-      deadline = @time_hash[path]
+      deadline = @@time_hash[path] || init_deadline(Time.now.getlocal("+08:00"))
       t < deadline && t > (deadline - SECONDS_DAY)
     end
 
     new_commit_count = results.size
     @@commit_hash[path] += new_commit_count
     if new_commit_count > 0
-      # TODO notify androi devices!!!!!
+      # TODO notify android devices!!!!!
     end
   end
 end
@@ -41,23 +41,18 @@ end
 
 def update_time_for path
   time = Time.now.getlocal("+08:00")
-  deadline = @time_hash[path] || init_deadline(time)
+  deadline = @@time_hash[path] || init_deadline(time)
   if time > deadline # next day
     deadline += SECONDS_DAY
-    @time_hash[path] = deadline
-    @commit_hash[path] = 0
+    @@time_hash[path] = deadline
+    @@commit_hash[path] = 0
   end
 end
 
 def init_deadline time
-  time.minute = 0
-  time.second = 0
-  if time.hour < 15
-    time.hour = 15
-  else
-    time.hour = 15
+  if time.hour >= 15
     time += SECONDS_DAY
   end
 
-  time
+  Time.new(time.year, time.month, time.day, 15, 0, 0, time.utc_offset)
 end
