@@ -67,7 +67,6 @@ post '/update' do
     @@commit_hash[path] += new_commit_count
     puts @@device_pool.reverse_as_list
     devices = @@device_pool.reverse_as_list[path]
-    puts devices
     if new_commit_count > 0 && devices.size > 0
       msg = {
         "registration_ids" => devices,
