@@ -10,8 +10,9 @@ get '/:type/:name' do
 end
 
 post '/update' do
-  @events = JSON.load(request.body.read)
-  puts @events
+  request.body.rewind  # in case someone already read it
+  events = JSON.load request.body.read
+  puts events
 end
 
 def path_for type, name
