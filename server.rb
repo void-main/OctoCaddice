@@ -1,11 +1,15 @@
 require 'sinatra'
 require 'json'
 require 'time'
+require 'httpclient'
+require './helper'
 
 @@device_pool = Hash.new ""
 @@commit_hash = Hash.new 0 # default to 0
 @@time_hash = {}
+@@clnt = HTTPClient.new
 
+GCM_ANDROID_ENDPOINT = "https://android.googleapis.com/gcm/send"
 SECONDS_DAY = 60 * 60 * 24
 
 get '/:type/:name' do
@@ -57,8 +61,19 @@ post '/update' do
 
     new_commit_count = results.size
     @@commit_hash[path] += new_commit_count
-    if new_commit_count > 0
-      # TODO notify android devices!!!!!
+    devices = @@device_pool.reverse_as_list[path]
+    if new_commit_count > 0 && devices.size > 0
+      msg = {
+        "registration_ids" => devices,
+        "data" => {
+          "path" => path,
+          "count" => new_commit_count
+        }
+      }
+
+      puts msg
+      # Do post request
+      @@clnt.post(GCM_ANDROID_ENDPOINT, JSON.dump(msg), {"Authorization" => ENV["GOOGLE_API_KEY"], "Content-Type" => "application/json"})
     end
   end
 end
