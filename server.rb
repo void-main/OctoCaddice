@@ -2,6 +2,7 @@ require 'sinatra'
 require 'json'
 require 'time'
 
+@@device_pool = Hash.new ""
 @@commit_hash = Hash.new 0 # default to 0
 @@time_hash = {}
 
@@ -9,11 +10,38 @@ SECONDS_DAY = 60 * 60 * 24
 
 get '/:type/:name' do
   path = path_for params[:type], params[:name]
-  update_time_for path
-  result = @@commit_hash[path]
-  result.to_s
+
+  if !@@commit_hash.has_key? path
+    status(404) # Not found
+    return "Unregistered path: `#{path}`, please register it with your android device first"
+  end
+
+  result = {
+    "path" => path,
+    "count" => @@commit_hash[path]
+  }
+  JSON.dump result
 end
 
+# Register a new device with it's user path
+post '/register' do
+  regId = params["regId"]
+  path = params["path"]
+  @@device_pool[regId] = path
+  update_time_for path
+  '{"status" : "success"}'
+end
+
+# Unregister the device, as well as the path
+post '/unregister' do
+  regId = params["regId"]
+  path = @@device_pool[regId]
+  @@device_pool.delete regId
+  @@commit_hash.delete path
+  @@time_hash.delete path
+end
+
+# Updated by OctoCaddice-Web
 post '/update' do
   request.body.rewind  # in case someone already read it
   events = JSON.load request.body.read
@@ -36,7 +64,7 @@ post '/update' do
 end
 
 def path_for type, name
-  "#{type}s/#{name}"
+  "#{type}/#{name}"
 end
 
 def update_time_for path
