@@ -79,6 +79,7 @@ post '/update' do
     end
 
     new_commit_count = results.size
+    @@commit_hash[path] ||= 0
     @@commit_hash[path] += new_commit_count
     puts @@device_pool.reverse_as_list
     devices = @@device_pool.reverse_as_list[path]
