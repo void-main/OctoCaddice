@@ -16,3 +16,7 @@ tmp
 .yardoc
 _yardoc
 doc/
+
+device.json
+commit_hash.json
+time_hash.json

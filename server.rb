@@ -2,6 +2,7 @@ require 'sinatra'
 require 'json'
 require 'time'
 require 'httpclient'
+require 'cgi'
 require './helper'
 
 @@device_pool = Hash.new ""
@@ -9,20 +10,28 @@ require './helper'
 @@time_hash = {}
 @@clnt = HTTPClient.new
 
+COUCHDB_ENDPOINT = "http://61.167.60.58:5984/octo-caddice"
 GCM_ANDROID_ENDPOINT = "https://android.googleapis.com/gcm/send"
 SECONDS_DAY = 60 * 60 * 24
+
+before do
+  @@device_pool = JSON.load(open("device.json").read) if File.exists?("device.json")
+  @@commit_hash = JSON.load(open("commit_hash.json").read) if File.exists?("commit_hash.json")
+  @@time_hash = JSON.load(open("time_hash.json").read) if File.exists?("time_hash.json")
+end
+
+after do
+  File.open("device.json", "w") { |file| file.write(JSON.dump(@@device_pool)) }
+  File.open("commit_hash.json", "w") { |file| file.write(JSON.dump(@@commit_hash)) }
+  File.open("time_hash.json", "w") { |file| file.write(JSON.dump(@@time_hash)) }
+end
 
 get '/:type/:name' do
   path = path_for params[:type], params[:name]
 
-  if !@@commit_hash.has_key? path
-    status(404) # Not found
-    return "Unregistered path: `#{path}`, please register it with your android device first"
-  end
-
   result = {
     "path" => path,
-    "count" => @@commit_hash[path]
+    "count" => @@commit_hash[path] || 0
   }
   JSON.dump result
 end
@@ -36,6 +45,12 @@ post '/register' do
   regId = params["regId"]
   path = params["path"]
   @@device_pool[regId] = path
+
+  type, name = path.split("/", 2)
+  doc = {"name" => name, "type" => "type"}
+  target_url = COUCHDB_ENDPOINT + "/" + CGI.escape(path)
+  @@clnt.put target_url, JSON.dump(doc)
+
   update_time_for path
   '{"status" : "success"}'
 end
