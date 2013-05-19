@@ -47,7 +47,7 @@ post '/register' do
   @@device_pool[regId] = path
 
   type, name = path.split("/", 2)
-  doc = {"name" => name, "type" => "type"}
+  doc = {"name" => name, "type" => type}
   target_url = COUCHDB_ENDPOINT + "/" + CGI.escape(path)
   @@clnt.put target_url, JSON.dump(doc)
 
