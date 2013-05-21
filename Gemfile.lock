@@ -1,7 +1,15 @@
 GEM
   remote: http://rubygems.org/
   specs:
+    aws-base (0.1.0)
+      aws-sdk (~> 1.10.0)
+    aws-sdk (1.10.0)
+      json (~> 1.4)
+      nokogiri (>= 1.4.4)
+      uuidtools (~> 2.1)
     httpclient (2.3.3)
+    json (1.8.0)
+    nokogiri (1.5.9)
     rack (1.5.2)
     rack-protection (1.5.0)
       rack
@@ -10,10 +18,13 @@ GEM
       rack-protection (~> 1.4)
       tilt (~> 1.3, >= 1.3.4)
     tilt (1.4.1)
+    uuidtools (2.1.4)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  aws-base
+  aws-sdk
   httpclient
   sinatra
