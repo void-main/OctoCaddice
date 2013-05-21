@@ -29,10 +29,7 @@ class RegisteredEntity < AWSBase
 
   def list
     list = {}
-    @db.items.each do |path|
-      list[path] = @db.items[path].attributes.to_h
-    end
-
+    @db.items.each {|path| list[path.name] = path.attributes[DEVICE_COLUMN_NAME].values}
     JSON.dump list
   end
 
